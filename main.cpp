@@ -1,74 +1,161 @@
 #include <iostream>
 #include <fstream>
 #include "nlohmann/json.hpp"
+#include <vector>
+#include <exception>
 
-int main()
+std::string CONFIG_FILE=".//config.json";
+
+class empty_config: public std::exception
 {
-    nlohmann::json films, film;
-
-    film["origin"]="USA";
-    film["created"]=2003;
-    film["studio"]="Wiseau-Films";
-    film["writer"]="Tommy Wiseau";
-    film["cast"]={{"Tommy Wiseau", "Johnny"}, {"Juliette Danielle", "Lisa"},{"Greg Sestero", "Mark"}};
-    films["the Room"]=film;
-
-    film["origin"]="USA";
-    film["created"]=1975;
-    film["studio"]="United Artists";
-    film["writer"]="Richard Chew";
-    film["cast"]={{"Jack Nicholson","Randle Patrick \"R.P.\" McMurphy"}, {"Louise Fletcher", "Nurse Mildred Ratched"},{"Will Sampson", "\"Chief\" Bromden"}};
-    films["One Flew Over the Cuckoo's Nest"]=film;
-
-    film["origin"]="Russia";
-    film["created"]=1986;
-    film["studio"]="Lenfilm";
-    film["writer"]="Leda Semyonova";
-    film["cast"]={{"Yevgeniy Yevstigneyev","Professor Philipp Philippovich Preobrazhensky"}, {"Boris Plotnikov","Dr. Ivan Arnoldovich Bormental, the professor's assistant"},{"Vladimir Tolokonnikov","Polygraph Polygraphovich Sharikov"}};
-    films["Heart of a Dog"]=film;
-
-    film["origin"]="USA";
-    film["created"]=1997;
-    film["studio"]="Paramount Pictures";
-    film["writer"]="Conrad Buff";
-    film["cast"]={{"Leonardo DiCaprio","Jack Dawson"},{"Kate Winslet","Rose DeWitt Bukater"},{"Billy Zane","Caledon Hockley"}};
-    films["Titanic"]=film;
-
-    film["origin"]="USA";
-    film["created"]=1941;
-    film["studio"]="RKO Radio Pictures";
-    film["writer"]="Orson Welles";
-    film["cast"]={{"Joseph Cotten","Jedediah Leland"}, {"Dorothy Comingore","Susan Alexander Kane"},{"Agnes Moorehead","Mary Kane"}};
-    films["Citizen Kane"]=film;
-
-    std::ofstream json_file("films.json");
-
-    json_file << films;
-
-    json_file.close();
-
-
-    std::ifstream films_file("films.json");
-    nlohmann::json films_json;
-    films_file >> films_json;
-
-    films_file.close();
-
-    std::string actor_name;
-
-    std::cout << "Input actor's name to search: ";
-    std::getline(std::cin, actor_name);
-
-    for(auto film_it=films_json.begin();film_it!=films_json.end();film_it++)
+    virtual const char* what() const throw()
     {
-        for(auto actor_it=(*film_it)["cast"].begin();actor_it!=(*film_it)["cast"].end();actor_it++)
-        {
-            if(actor_it.key().find(actor_name)!= std::string::npos)
+        return "Config file is empty";
+    }
+};
+
+class missing_config: public std::exception
+{
+    virtual const char* what() const throw()
+    {
+        return "Config file is missing";
+    }
+};
+
+class ConverterJSON
+{
+    public:
+    ConverterJSON() = default;
+/**
+* Метод получения содержимого файлов
+* @return Возвращает список с содержимым файлов перечисленных
+* в config.json
+*/
+    std::vector<std::string> GetTextDocuments()
+    {
+        try {
+            std::vector<std::string> textDocuments;
+            std::ifstream temp_strm(CONFIG_FILE);
+            if (!temp_strm.is_open())
+                throw missing_config();
+            nlohmann::json config_json;
+            temp_strm >> config_json;
+            temp_strm.close();
+            std::stringstream buff;
+
+            for (auto fileNames_it = config_json["files"].begin();
+            fileNames_it != config_json["files"].end();
+            fileNames_it++)
             {
-                std::cout << "He/She was acting in " << film_it.key() << " as " << *actor_it << std::endl;
+                temp_strm.open(fileNames_it.value());
+                buff << temp_strm.rdbuf();
+                textDocuments.push_back(buff.str());
+                temp_strm.close();
+                std::stringstream().swap(buff);
+            }
+
+            return textDocuments;
+        }
+        catch (std::exception &e)
+        {
+            std::cout << e.what();
+        }
+    }
+/**
+* Метод считывает поле max_responses для определения предельного
+* количества ответов на один запрос
+* @return
+*/
+    int GetResponsesLimit()
+    {
+        try {
+            std::vector<std::string> textDocuments;
+            std::ifstream temp_strm(CONFIG_FILE);
+            if(!temp_strm.is_open())
+                throw missing_config();
+
+            nlohmann::json config_json;
+            temp_strm >> config_json;
+            if (config_json.find("config")==config_json.end()) {
+                throw empty_config();
+            }
+
+            return (int) config_json["config"]["max_responses"];
+        }
+        catch (std::exception &e)
+        {
+            std::cout << e.what();
+        }
+    }
+/**
+* Метод получения запросов из файла requests.json
+* @return возвращает список запросов из файла requests.json
+*/
+    std::vector<std::string> GetRequests()
+    {
+        std::vector<std::string> requests;
+        std::ifstream temp_strm(".//requests.json");
+        nlohmann::json requests_json;
+        temp_strm >> requests_json;
+
+        for(auto requests_it=requests_json["requests"].begin(); requests_it != requests_json["requests"].end(); requests_it++)
+        {
+            requests.push_back(requests_it.value());
+        }
+
+        return requests;
+    }
+/**
+* Положить в файл answers.json результаты поисковых запросов
+*/
+    void putAnswers(std::vector<std::vector<std::pair<int, float>>> answers)
+    {
+        nlohmann::json answers_json, request_json, relevance_json;
+        int request_count=1, docid_count=0;
+
+        for(auto requests = answers.begin(); requests!=answers.end(); requests++)
+        {
+            for(auto docid=requests->begin(); docid!=requests->end(); docid++)
+            {
+                if(docid->second>0)
+                {
+                    request_json["result"]="true";
+                    break;
+                }
+            }
+
+            if(!request_json.contains("result"))
+            {
+                request_json["result"] = "false";
+                continue;
+            }
+            else
+            {
+                for(auto docid=requests->begin(); docid!=requests->end(); docid++)
+                {
+                    if(docid->second > 0)
+                    {
+                        if(docid_count==0)
+                        {
+                            request_json["docid"] = docid->first;
+                            request_json["rank"] = docid->second;
+                            docid_count++;
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
             }
         }
     }
+};
 
+int main()
+{
+    ConverterJSON someStuff;
+
+    auto requests= someStuff.GetResponsesLimit();
     return 0;
 }
