@@ -3,6 +3,8 @@
 #include "nlohmann/json.hpp"
 #include <vector>
 #include <exception>
+#include <iomanip>
+#include <sstream>
 
 std::string CONFIG_FILE=".//config.json";
 
@@ -110,12 +112,16 @@ class ConverterJSON
 */
     void putAnswers(std::vector<std::vector<std::pair<int, float>>> answers)
     {
-        nlohmann::json answers_json, request_json, relevance_json;
+        nlohmann::json final_json, answers_json, request_json;
+        auto relevance_json = nlohmann::json::array();
         int request_count=1, docid_count=0;
+        std::string request_count_string;
+        std::stringstream request_ss;
 
-        for(auto requests = answers.begin(); requests!=answers.end(); requests++)
+        for(auto request = answers.begin(); request != answers.end(); request++)
         {
-            for(auto docid=requests->begin(); docid!=requests->end(); docid++)
+            /**Check if there any relevances at all*/
+            for(auto docid= request->begin(); docid != request->end(); docid++)
             {
                 if(docid->second>0)
                 {
@@ -124,31 +130,65 @@ class ConverterJSON
                 }
             }
 
-            if(!request_json.contains("result"))
+            if(request_json.find("result")==request_json.end())
             {
                 request_json["result"] = "false";
-                continue;
             }
             else
             {
-                for(auto docid=requests->begin(); docid!=requests->end(); docid++)
+                for(auto docid=request->begin(); docid!=request->end(); docid++)
                 {
-                    if(docid->second > 0)
+                    if(docid->second > 0 && docid_count == 0)
                     {
-                        if(docid_count==0)
-                        {
-                            request_json["docid"] = docid->first;
-                            request_json["rank"] = docid->second;
-                            docid_count++;
-                        }
-                        else
-                        {
-
-                        }
+                        request_json["docid"] = docid->first;
+                        request_json["rank"] = docid->second;
+                        docid_count++;
                     }
+                    else if(docid->second > 0 && docid_count == 1)
+                    {
+                        /** add docid and rank that already in config into array*/
+                        relevance_json.push_back(
+                                        nlohmann::json ()={{"docid", request_json["docid"]},{"rank", request_json["rank"]}}
+                                );
+                        /** erase those docid and rank */
+                        request_json.erase("docid");
+                        request_json.erase("rank");
+
+                        relevance_json.push_back(
+                                nlohmann::json ()={{"docid", docid->first},{"rank", docid->second}}
+                                );
+
+                        docid_count++;
+                    }
+                    else if(docid->second > 0 && docid_count > 1)
+                    {
+                        relevance_json.push_back(
+                                nlohmann::json ()={{"docid", docid->first},{"rank", docid->second}}
+                        );
+                    }
+                    if(docid_count>1)
+                        request_json["relevance"] = relevance_json;
                 }
+
+                docid_count = 0;
+                relevance_json.clear();
             }
+            request_ss << std::setw(3) << std::setfill('0') << request_count;
+            request_count_string = request_ss.str();
+            request_ss.str(std::string());
+
+            answers_json["request" + request_count_string] = request_json;
+            request_json.clear();
+            request_count++;
         }
+
+
+
+        final_json["answers"]=answers_json;
+        std::ofstream json_file("answers.json");
+
+        json_file << final_json;
+        json_file.close();
     }
 };
 
@@ -156,6 +196,19 @@ int main()
 {
     ConverterJSON someStuff;
 
-    auto requests= someStuff.GetResponsesLimit();
+    std::vector<std::vector<std::pair<int, float>>> answers;
+
+    std::vector<std::pair<int, float>> a, b, c;
+    a.push_back(std::pair<int, float> (0, 0.892));
+    a.push_back(std::pair<int, float> (1, 0.452));
+    a.push_back(std::pair<int, float> (2, 0.231));
+
+    b.push_back(std::pair<int, float> (0, 0.777));
+
+    answers.push_back(a);
+    answers.push_back(c);
+    answers.push_back(b);
+
+    someStuff.putAnswers(answers);
     return 0;
 }
