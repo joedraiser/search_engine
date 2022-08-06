@@ -66,7 +66,7 @@ class ConverterJSON
 
                 buff << temp_strm.rdbuf();
 
-
+                /** check 1000< words, 100< word length */
                 while(!buff.eof())
                 {
                     buff >> word_to_check;
@@ -136,9 +136,32 @@ class ConverterJSON
         nlohmann::json requests_json;
         temp_strm >> requests_json;
 
+        std::stringstream ss;
+        int word_count=0, request_count=0;
+
+        /** iterate through each request */
         for(auto requests_it=requests_json["requests"].begin(); requests_it != requests_json["requests"].end(); requests_it++)
         {
-            requests.push_back(requests_it.value());
+            if(request_count>999)
+            {
+                std::cout << "Too much requests\n";
+                break;
+            }
+
+            ss << requests_it.value();
+            /** count words in request */
+            word_count=std::distance(std::istream_iterator<std::string>(ss), std::istream_iterator<std::string>());
+            /** validate words quantity */
+            if(word_count>10 || word_count<1)
+            {
+                std::cout << "Request No " << request_count << ": Number of requests is not valid. There are more than 10 requests or less than 1\n";
+                requests.push_back("");
+            }
+            else
+                requests.push_back(requests_it.value());
+
+            request_count++;
+            std::stringstream().swap(ss);
         }
 
         return requests;
@@ -237,7 +260,8 @@ int main()
 {
     ConverterJSON someStuff;
 
-    auto recourses = someStuff.GetTextDocuments();
+    //auto recourses = someStuff.GetTextDocuments();
+    auto requests = someStuff.GetRequests();
 
     //std::vector<std::vector<std::pair<int, float>>> answers;
 
