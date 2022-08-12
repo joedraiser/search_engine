@@ -1,7 +1,5 @@
 #include "ConverterJSON.h"
 
-std::string CONFIG_FILE=".//config.json";
-
 int main()
 {
     ConverterJSON someStuff;

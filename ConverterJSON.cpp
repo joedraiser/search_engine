@@ -1,5 +1,5 @@
 #include "ConverterJSON.h"
-extern std::string CONFIG_FILE;
+std::string CONFIG_FILE=".//config.json";
 
 std::vector<std::string> ConverterJSON::GetTextDocuments()
 {
@@ -42,13 +42,13 @@ std::vector<std::string> ConverterJSON::GetTextDocuments()
                     buff >> word_to_check;
                     if(word_to_check.length()>100)
                     {
-                        std::cout << fileNames_it.value() << " contains very lengthy word";
+                        std::cout << fileNames_it.value() << " contains very lengthy word\n";
                         std::stringstream().swap(buff);
                         break;
                     }
                     else if(word_count > 1000)
                     {
-                        std::cout << fileNames_it.value() << " contains too much words";
+                        std::cout << fileNames_it.value() << " contains too much words\n";
                         std::stringstream().swap(buff);
                         break;
                     }
