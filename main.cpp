@@ -1,5 +1,6 @@
 #include "ConverterJSON.h"
 #include "InvertedIndex.h"
+#include "SearchServer.h"
 
 int main()
 {
@@ -25,8 +26,8 @@ int main()
 
     InvertedIndex invertedVar;
     invertedVar.UpdateDocumentBase(resources);
-
-    invertedVar.GetWordCount("milk");
+    std::vector<Entry> totalFreq;
+    fillArrayTotalEntriesForQuery("fish milk bread", totalFreq, invertedVar);
 
     return 0;
 }

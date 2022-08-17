@@ -222,3 +222,91 @@ void ConverterJSON::putAnswers(std::vector<std::vector<std::pair<int, float>>> a
         json_file.close();
     }
 }
+
+void ConverterJSON::putAnswers(std::vector< std::vector<RelativeIndex> > answers)
+{
+    {
+        nlohmann::json final_json, answers_json, request_json;
+        auto relevance_json = nlohmann::json::array();
+        int request_count=1, docid_count=0;
+        std::string request_count_string;
+        std::stringstream request_ss;
+
+        /** iterate throgh requests*/
+        for(auto request = answers.begin(); request != answers.end(); request++)
+        {
+            /**Check if there any relevances at all*/
+            for(auto docid= request->begin(); docid != request->end(); docid++)
+            {
+                if(docid->rank>0)
+                {
+                    request_json["result"]="true";
+                    break;
+                }
+            }
+
+            if(request_json.find("result")==request_json.end())
+            {
+                request_json["result"] = "false";
+            }
+                /** so there are relevances. Add them to request */
+            else
+            {
+                /** iterate through docids*/
+                for(auto docid=request->begin(); docid!=request->end(); docid++)
+                {
+                    /** if there is only one relevance */
+                    if(docid->rank > 0 && docid_count == 0)
+                    {
+                        request_json["docid"] = docid->doc_id;
+                        request_json["rank"] = docid->rank;
+                        docid_count++;
+                    }
+                        /** if there is two relevances */
+                    else if(docid->rank > 0 && docid_count == 1)
+                    {
+                        /** add docid and rank that already in config into array*/
+                        relevance_json.push_back(
+                                nlohmann::json ()={{"docid", request_json["docid"]},{"rank", request_json["rank"]}}
+                        );
+                        /** erase those docid and rank */
+                        request_json.erase("docid");
+                        request_json.erase("rank");
+
+                        relevance_json.push_back(
+                                nlohmann::json ()={{"docid", docid->doc_id},{"rank", docid->rank}}
+                        );
+
+                        docid_count++;
+                    }
+                        /** if there are many relevances */
+                    else if(docid->rank > 0 && docid_count > 1)
+                    {
+                        relevance_json.push_back(
+                                nlohmann::json ()={{"docid", docid->doc_id},{"rank", docid->rank}}
+                        );
+                    }
+                    if(docid_count>1)
+                        request_json["relevance"] = relevance_json;
+                }
+
+                docid_count = 0;
+                relevance_json.clear();
+            }
+            /** forming request names like Request001, Request002 etc */
+            request_ss << std::setw(3) << std::setfill('0') << request_count;
+            request_count_string = request_ss.str();
+            request_ss.str(std::string());
+
+            answers_json["request" + request_count_string] = request_json;
+            request_json.clear();
+            request_count++;
+        }
+
+        final_json["answers"]=answers_json;
+        std::ofstream json_file("answers.json");
+
+        json_file << final_json;
+        json_file.close();
+    }
+}

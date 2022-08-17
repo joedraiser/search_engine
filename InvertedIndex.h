@@ -21,6 +21,11 @@ struct Entry {
 class InvertedIndex {
 public:
     InvertedIndex() = default;
+    InvertedIndex(InvertedIndex &idx)
+    {
+        docs=idx.docs;
+        freq_dictionary=idx.freq_dictionary;
+    };
 /**
 * Обновить или заполнить базу документов, по которой будем совершать
 поиск
@@ -34,6 +39,7 @@ public:
 * @return возвращает подготовленный список с частотой слов
 */
     std::vector<Entry> GetWordCount(const std::string& word);
+    std::vector<std::string>& getDocs() {return docs;};
 private:
     std::vector<std::string> docs; // список содержимого документов
     std::map<std::string, std::vector<Entry>> freq_dictionary; // частотный словарь

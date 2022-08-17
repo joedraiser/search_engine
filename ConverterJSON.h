@@ -8,6 +8,14 @@
 #include <exception>
 #include <iomanip>
 
+struct RelativeIndex{
+    size_t doc_id;
+    float rank;
+    bool operator ==(const RelativeIndex& other) const {
+        return (doc_id == other.doc_id && rank == other.rank);
+    }
+};
+
 class empty_config: public std::exception
 {
     virtual const char* what() const throw()
@@ -51,6 +59,7 @@ public:
 * Положить в файл answers.json результаты поисковых запросов
 */
     void putAnswers(std::vector<std::vector<std::pair<int, float>>> answers);
+    void putAnswers(std::vector< std::vector<RelativeIndex> > answers);
 };
 
 #endif //SEARCH_ENGINE_CONVERTERJSON_H

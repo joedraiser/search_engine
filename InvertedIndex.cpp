@@ -11,6 +11,9 @@ void InvertedIndex::UpdateDocumentBase(std::vector<std::string> input_docs)
 
 std::vector<Entry> InvertedIndex::GetWordCount(const std::string &word)
 {
+    if(freq_dictionary.find(word)!=freq_dictionary.end())
+        return freq_dictionary[word];
+
     std::vector<Entry> entryArray;
     std::vector<std::thread> proccesingDocThreadArray;
     std::mutex entryArrayLock;
