@@ -14,14 +14,17 @@ target_link_libraries(search_engine PRIVATE nlohmann_json::nlohmann_json)
 add_custom_command(TARGET search_engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/config.json
-        $<TARGET_FILE_DIR:search_engine>
+        ${CMAKE_CURRENT_BINARY_DIR}/config.json
         )
 
 add_custom_command(TARGET search_engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/requests.json
-        $<TARGET_FILE_DIR:search_engine>
+        ${CMAKE_CURRENT_BINARY_DIR}/requests.json
         )
+
+file(COPY resources DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY resources_test DESTINATION ${CMAKE_BINARY_DIR})
 
 include(FetchContent)
 FetchContent_Declare(
@@ -38,6 +41,18 @@ enable_testing()
 
 add_executable(test_all ConverterJSON_unittest.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp InvertedIndex_unittest.cpp SearchServer.h SearchServer.cpp SearchServerUnittest.cpp)
 target_link_libraries(test_all PRIVATE nlohmann_json::nlohmann_json gtest_main)
+
+add_custom_command(TARGET test_all POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/config.json
+        ${CMAKE_CURRENT_BINARY_DIR}/config.json
+        )
+
+add_custom_command(TARGET test_all POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_CURRENT_SOURCE_DIR}/requests.json
+        ${CMAKE_CURRENT_BINARY_DIR}/requests.json
+        )
 
 include(GoogleTest)
 gtest_discover_tests(test_all)

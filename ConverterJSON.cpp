@@ -152,14 +152,14 @@ void ConverterJSON::putAnswers(std::vector<std::vector<std::pair<int, float>>> a
             {
                 if(docid->second>0)
                 {
-                    request_json["result"]="true";
+                    request_json["result"]=true;
                     break;
                 }
             }
 
             if(request_json.find("result")==request_json.end())
             {
-                request_json["result"] = "false";
+                request_json["result"] = false;
             }
                 /** so there are relevances. Add them to request */
             else
