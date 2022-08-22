@@ -37,4 +37,4 @@ Project has two targets of execution:
 
 test_all target is used to launch testcases
 
-search_engine target is designed for search engine to use. It has main function as entry point where all three main classes(ConverterJSON, InvertedIndex and SearchServer) can invoked.
+search_engine target is designed for search engine to use. It has main function as entry point where all three main classes(ConverterJSON, InvertedIndex and SearchServer) can be invoked.
