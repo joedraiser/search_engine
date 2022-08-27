@@ -3,13 +3,7 @@ project(search_engine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-
-add_subdirectory(nlohmann_json)
-
 add_executable(search_engine main.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp SearchServer.h SearchServer.cpp)
-
-target_link_libraries(search_engine PRIVATE nlohmann_json::nlohmann_json)
 
 add_custom_command(TARGET search_engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -39,8 +33,8 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(test_all ConverterJSON_unittest.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp InvertedIndex_unittest.cpp SearchServer.h SearchServer.cpp SearchServerUnittest.cpp)
-target_link_libraries(test_all PRIVATE nlohmann_json::nlohmann_json gtest_main)
+add_executable(test_all tests/ConverterJSON_unittest.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp tests/InvertedIndex_unittest.cpp SearchServer.h SearchServer.cpp tests/SearchServerUnittest.cpp)
+target_link_libraries(test_all PRIVATE gtest_main)
 
 add_custom_command(TARGET test_all POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different

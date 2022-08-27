@@ -3,10 +3,10 @@
 
 #include <iostream>
 #include <fstream>
-#include "nlohmann/json.hpp"
 #include <vector>
 #include <exception>
 #include <iomanip>
+#include "json.hpp"
 
 struct RelativeIndex{
     size_t doc_id;
