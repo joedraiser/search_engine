@@ -73,6 +73,14 @@ std::vector<std::vector<RelativeIndex>> SearchServer::search(const std::vector<s
 
                     toErase = findDocid(totalFreq, biggestDocid);
                 }
+                else if(entry.count==biggestCount)
+                {
+                    if(entry.doc_id<biggestDocid)
+                    {
+                        biggestDocid=entry.doc_id;
+                        toErase = findDocid(totalFreq, biggestDocid);
+                    }
+                }
             }
             currentQuery.push_back(RelativeIndex() = {(size_t)biggestDocid, (float)biggestCount / maxAbsRelevancy});
             totalFreq.erase(toErase);
