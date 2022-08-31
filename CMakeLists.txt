@@ -3,7 +3,7 @@ project(search_engine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(search_engine main.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp SearchServer.h SearchServer.cpp)
+add_executable(search_engine main.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp SearchServer.h SearchServer.cpp json.hpp)
 
 add_custom_command(TARGET search_engine POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -33,7 +33,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(test_all tests/ConverterJSON_unittest.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp tests/InvertedIndex_unittest.cpp SearchServer.h SearchServer.cpp tests/SearchServerUnittest.cpp)
+add_executable(test_all tests/ConverterJSON_unittest.cpp ConverterJSON.h ConverterJSON.cpp InvertedIndex.h InvertedIndex.cpp tests/InvertedIndex_unittest.cpp SearchServer.h SearchServer.cpp tests/SearchServerUnittest.cpp json.hpp)
 target_link_libraries(test_all PRIVATE gtest_main)
 
 add_custom_command(TARGET test_all POST_BUILD
