@@ -2,6 +2,7 @@
 #define SEARCH_ENGINE_CONVERTERJSON_H
 
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <vector>
 #include <exception>

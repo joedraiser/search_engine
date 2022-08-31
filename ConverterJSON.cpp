@@ -17,7 +17,7 @@ std::vector<std::string> ConverterJSON::GetTextDocuments()
             temp_strm.close();
 
             std::stringstream buff;
-            std::string word_to_check;
+            std::string word_to_check, filename;
             int word_count=1;
 
 /** iterate through resources files */
@@ -27,7 +27,8 @@ std::vector<std::string> ConverterJSON::GetTextDocuments()
                     )
             {
 /** open resource file */
-                temp_strm.open(fileNames_it.value());
+                filename = fileNames_it.value();
+                temp_strm.open(filename);
                 if(!temp_strm.is_open())
                 {
                     std::cout << fileNames_it.value() << " is missing\n";
